@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Data Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        section {
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Breast Cancer Data Analysis</h1>
+        <p>Analyze and visualize the Breast Cancer dataset with ease.</p>
+    </header>
+    <main>
+        <section>
+            <h2>About the Dataset</h2>
+            <p>This dataset is sourced from the UCI Machine Learning Repository. It contains features to classify tumors as benign or malignant based on attributes of cell nuclei.</p>
+        </section>
+        <section>
+            <h2>Upload Your Dataset</h2>
+            <input type="file" id="upload" />
+            <button class="btn" onclick="processData()">Process Data</button>
+        </section>
+        <section>
+            <h2>Dataset Insights</h2>
+            <p><strong>Shape:</strong> <span id="shape">Not Available</span></p>
+            <p><strong>Missing Values:</strong> <span id="missing">Not Available</span></p>
+        </section>
+        <section>
+            <h2>Sample Data</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mean Radius</th>
+                        <th>Mean Texture</th>
+                        <th>Mean Perimeter</th>
+                        <th>Label</th>
+                    </tr>
+                </thead>
+                <tbody id="sample-data">
+                    <tr>
+                        <td colspan="4">No Data Uploaded</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <script>
+        const API_BASE_URL = "http://127.0.0.1:5000"; // Backend URL
+
+        async function processData() {
+            const fileInput = document.getElementById('upload');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please upload a dataset.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            // Send the uploaded file to the backend
+            try {
+                const response = await fetch(`${API_BASE_URL}/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById("shape").innerText = data.shape;
+                    document.getElementById("missing").innerText = JSON.stringify(data.missing_values);
+
+                    const tbody = document.getElementById("sample-data");
+                    tbody.innerHTML = "";
+                    data.head.forEach(row => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${row.mean_radius}</td>
+                                <td>${row.mean_texture}</td>
+                                <td>${row.mean_perimeter}</td>
+                                <td>${row.label}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    alert("Failed to process the dataset.");
+                }
+            } catch (error) {
+                console.error("Error processing dataset:", error);
+                alert("An error occurred. Please try again.");
+            }
+        }
+    </script>
+</body>
+</html>
